@@ -24,11 +24,12 @@ def create_shot_funnel_chart(
 
     pct_sot_init = (val_sot / val_shots * 100) if val_shots > 0 else 0
     pct_goals_sot = (val_goals / val_sot * 100) if val_sot > 0 else 0
+    pct_goals_total = (val_goals / val_shots * 100) if val_shots > 0 else 0
 
     custom_texts = [
-        f"{val_shots:,}".replace(",", " ") + " tirs (100 %)",
-        f"{val_sot:,}".replace(",", " ") + f" cadrés ({pct_sot_init:.1f} %)",
-        f"{val_goals:,}".replace(",", " ") + f" buts ({pct_goals_sot:.1f} % convertis)"
+        f"{val_shots:,}".replace(",", " ") + " tirs tentés (100 %)",
+        f"{val_sot:,}".replace(",", " ") + f" tirs cadrés ({pct_sot_init:.1f} % des tirs)",
+        f"{val_goals:,}".replace(",", " ") + f" buts inscrits ({pct_goals_sot:.1f} % convertis · {pct_goals_total:.1f} % de tous les tirs)"
     ]
 
     values = [val_shots, val_sot, val_goals]
@@ -39,7 +40,7 @@ def create_shot_funnel_chart(
         text=custom_texts,
         textinfo="text",
         textposition="inside",
-        textfont=dict(size=12, color="#FFFFFF", family="Arial"),
+        textfont=dict(size=13, color="#FFFFFF", family="Arial"),
         marker=dict(
             color=["#2563EB", "#0D9488", "#16A34A"],
             line=dict(color="#0F172A", width=1)
@@ -50,13 +51,13 @@ def create_shot_funnel_chart(
 
     fig.update_layout(
         title=dict(
-            text=f"<b>Entonnoir de conversion offensive ({team_name})</b>",
-            font=dict(size=13, color=text_color)
+            text=f"<b>Parcours d'une frappe ({team_name}) : de la tentative au but</b>",
+            font=dict(size=14, color=text_color)
         ),
         paper_bgcolor=bg_color,
         plot_bgcolor=bg_color,
-        height=260,
-        margin=dict(l=10, r=10, t=40, b=10)
+        height=280,
+        margin=dict(l=30, r=30, t=40, b=15)
     )
     return fig
 

@@ -56,11 +56,7 @@ quadrant_df = compute_quadrant_profiles(team_stats)
 st.title("Efficacité Offensive : La précision et le réalisme surpassent le volume de tirs")
 st.caption("Matrice décisionnelle croisant la précision au cadrage (SoT %) et la conversion clinique (Buts / Tir cadré).")
 
-st.markdown("""
-<div class="minto-card">
-    <strong>Enseignement tactique clé :</strong> La corrélation entre tirs totaux et points récoltés est faible (r = 0,28), alors que le couple Précision-Conversion explique plus de 62 % des variations de classement. Tirer sans cadrer pénalise l'équipe en favorisant les transitions adverses.
-</div>
-""", unsafe_allow_html=True)
+st.info("💡 **Repère tactique :** La corrélation entre volume brut de tirs et points récoltés est faible (r = 0,28). En revanche, le couple Précision-Conversion explique plus de 62 % du classement final. Tirer sans cadrer offre des relances faciles à l'adversaire.")
 
 # Graphique Quadrant
 fig_quad = create_quadrant_chart(quadrant_df, theme=theme)

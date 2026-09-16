@@ -23,6 +23,9 @@ def test_compute_executive_kpis():
     assert kpis["matches"] == 1900
     assert kpis["total_goals"] > 4000
     assert 2.4 <= kpis["goals_per_match"] <= 3.6
+    assert 20.0 <= kpis["shots_per_match"] <= 30.0
+    assert 7.0 <= kpis["sot_per_match"] <= 12.0
+    assert 0.20 <= kpis["goals_per_sot"] <= 0.40
     assert 30.0 <= kpis["shot_accuracy"] <= 40.0
     assert 25.0 <= kpis["conversion_rate"] <= 38.0
     assert kpis["points_per_sot"] > 0

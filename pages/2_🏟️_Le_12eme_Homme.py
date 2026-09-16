@@ -38,11 +38,7 @@ comp_stats = compute_home_advantage_comparison(df_raw)
 st.title("Le 12e Homme : L'avantage à domicile s'est effondré de 8 points pendant le huis clos COVID")
 st.caption("Étude comparative sur 1 900 matchs démontrant l'impact statistique direct de la présence des supporters.")
 
-st.markdown("""
-<div class="minto-card">
-    <strong>Preuve empirique (Minto) :</strong> En temps normal, jouer à domicile assure 46,2 % de victoires. Durant la saison 2020-21 disputée à huis clos, les victoires à domicile sont tombées à 37,9 % tandis que les victoires à l'extérieur sont devenues majoritaires (40,3 %), une anomalie unique dans l'histoire moderne du football anglais.
-</div>
-""", unsafe_allow_html=True)
+st.info("💡 **Constat statistique :** En temps normal, jouer à domicile assure 46,2 % de victoires. Durant la saison 2020-21 disputée à huis clos, les victoires à domicile sont tombées à 37,9 % tandis que les victoires à l'extérieur sont devenues majoritaires (40,3 %), une anomalie unique dans l'histoire du football anglais.")
 
 # 3 KPIs d'impact
 k1, k2, k3 = st.columns(3)

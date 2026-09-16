@@ -38,7 +38,7 @@ df_raw = load_pl_data()
 # 3. Barre latérale & Thème
 with st.sidebar:
     st.markdown("### ⚽ Premier League Analytics")
-    st.caption("Aide à la décision pour Direction Sportive & Recrutement")
+    st.caption("Tableau de bord tactique pour entraîneurs, analystes et passionnés")
     st.markdown("<span style='font-size:0.75rem; color:#64748B;'>Équipe : AZACRI · EL HAJJI · HAKIK · DEKHAIL</span>", unsafe_allow_html=True)
 
     dark_mode = st.toggle("🌙 Mode Sombre", value=st.session_state.get('dark_mode', False))
@@ -74,92 +74,96 @@ if df_filtered.empty:
     st.warning("⚠️ Aucun match ne correspond aux filtres sélectionnés.")
     st.stop()
 
-# 5. Hero Banner Exécutif
+# 5. Hero Banner Tactique (Public & Entraîneurs)
 st.markdown("""
 <div class="hero-banner">
-    <div class="hero-badge">Étude Stratégique · N=1 900 matchs (2019-2024)</div>
-    <h1 class="hero-title">L'efficacité de tir surpasse le volume : l'élite de Premier League se décide au cadrage et à la conversion</h1>
-    <p class="hero-subtitle">Plateforme décisionnelle conçue pour la direction technique et la cellule de recrutement des clubs professionnels.</p>
+    <div class="hero-badge">Analyse Tactique · 1 900 matchs de Premier League (2019-2024)</div>
+    <h1 class="hero-title">Cadrer et marquer : pourquoi la précision bat le volume brut en Premier League</h1>
+    <p class="hero-subtitle">Tableau de bord tactique pour entraîneurs, analystes et passionnés de football : comprendre comment les meilleures équipes transforment leurs occasions en victoires.</p>
     <div class="hero-credits">
-        <strong>Équipe :</strong> Ayoub AZACRI · Youssef EL HAJJI · Omar HAKIK · Youssef DEKHAIL · HETIC MD4
+        <strong>Équipe :</strong> Ayoub AZACRI · Youssef EL HAJJI · Omar HAKIK · Youssef DEKHAIL
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# 6. Zone KPIs Exécutifs (2 à 3 indicateurs maximum, contextualisés)
+# 6. Zone KPIs : Indicateurs clés contextualisés
 kpi_data = compute_executive_kpis(df_filtered, venue=venue_option, teams=selected_teams)
+
+# Repère historique 5 saisons pour les buts par match
+BASELINE_GOALS_PER_MATCH = 2.82
+goals_diff = round(kpi_data['goals_per_match'] - BASELINE_GOALS_PER_MATCH, 2)
 
 c1, c2, c3 = st.columns(3)
 c1.metric(
-    "Taux de cadrage net",
+    "Précision des tirs (Cadrage)",
     f"{kpi_data['shot_accuracy']:.1f} %",
     f"{kpi_data['accuracy_diff']:+.1f} pts vs moyenne ligue (34,0 %)",
     delta_color="normal" if kpi_data['accuracy_diff'] >= 0 else "inverse"
 )
 c2.metric(
-    "Taux de conversion clinique",
+    "Efficacité devant le but (Finition)",
     f"{kpi_data['conversion_rate']:.1f} %",
     f"{kpi_data['conversion_diff']:+.1f} pts vs moyenne ligue (31,0 %)",
     delta_color="normal" if kpi_data['conversion_diff'] >= 0 else "inverse"
 )
 c3.metric(
-    f"Buts / match ({venue_option})",
-    f"{kpi_data['goals_per_match']:.2f}",
-    f"{kpi_data['matches']} matchs analysés"
+    f"Moyenne de buts ({venue_option})",
+    f"{kpi_data['goals_per_match']:.2f} / match",
+    f"{goals_diff:+.2f} vs moyenne globale saison ({BASELINE_GOALS_PER_MATCH:.2f})",
+    delta_color="normal" if goals_diff >= 0 else "inverse"
 )
 
-# 7. Synthèse Minto & Entonnoir d'Efficacité
-col_minto, col_funnel = st.columns([1.2, 0.8])
+st.caption(
+    f"📊 Volume analysé : {kpi_data['matches']:,} matchs · "
+    f"{kpi_data['shots_per_match']:.1f} tirs tentés par match dont {kpi_data['sot_per_match']:.1f} cadrés · "
+    f"{kpi_data['goals_per_sot']:.2f} but par frappe cadrée (1 tir cadré sur 3 converti)."
+)
 
-with col_minto:
-    st.markdown("""
-    <div class="minto-card">
-        <strong>Synthèse de cadrage (Minto) :</strong> Accumuler des frappes non cadrées réduit la rentabilité globale d'une équipe. Les prétendants au titre se distinguent par une précision de cadrage supérieure à 36 % et un taux de conversion supérieur à 33 %, convertissant chaque tir cadré en 0,31 but contre 0,08 pour les équipes reléguées.
-    </div>
-    """, unsafe_allow_html=True)
-    st.info("💡 **Observation clé :** Près de deux tiers des frappes (65 %) sont gaspillées hors cadre. La priorité d'entraînement doit porter sur la sélection des tirs plutôt que sur le volume brut.")
+# 7. Parcours d'une frappe : du tir tenté au but marqué (Niveau visuel dédié)
+st.markdown("---")
+st.subheader("Parcours d'une frappe : du tir tenté au but marqué")
+st.caption("Visualisation de la déperdition des frappes : 65 % des tirs ne sont pas cadrés. Prioriser la qualité du tir plutôt que l'accumulation de frappes lointaines.")
 
-with col_funnel:
-    if venue_option == "Domicile":
-        sub_f = df_filtered[df_filtered["HomeTeam"].isin(selected_teams)] if (selected_teams and len(selected_teams) > 0) else df_filtered
-        tot_shots = sub_f["HS"].sum()
-        tot_sot = sub_f["HST"].sum()
-        tot_goals = sub_f["FTHG"].sum()
-    elif venue_option == "Extérieur":
-        sub_f = df_filtered[df_filtered["AwayTeam"].isin(selected_teams)] if (selected_teams and len(selected_teams) > 0) else df_filtered
-        tot_shots = sub_f["AS"].sum()
-        tot_sot = sub_f["AST"].sum()
-        tot_goals = sub_f["FTAG"].sum()
-    else:
-        tot_shots = df_filtered["TotalShots"].sum()
-        tot_sot = df_filtered["TotalShotsTarget"].sum()
-        tot_goals = df_filtered["TotalGoals"].sum()
+if venue_option == "Domicile":
+    sub_f = df_filtered[df_filtered["HomeTeam"].isin(selected_teams)] if (selected_teams and len(selected_teams) > 0) else df_filtered
+    tot_shots = sub_f["HS"].sum()
+    tot_sot = sub_f["HST"].sum()
+    tot_goals = sub_f["FTHG"].sum()
+elif venue_option == "Extérieur":
+    sub_f = df_filtered[df_filtered["AwayTeam"].isin(selected_teams)] if (selected_teams and len(selected_teams) > 0) else df_filtered
+    tot_shots = sub_f["AS"].sum()
+    tot_sot = sub_f["AST"].sum()
+    tot_goals = sub_f["FTAG"].sum()
+else:
+    tot_shots = df_filtered["TotalShots"].sum()
+    tot_sot = df_filtered["TotalShotsTarget"].sum()
+    tot_goals = df_filtered["TotalGoals"].sum()
 
-    funnel_label = (selected_teams[0] if len(selected_teams) == 1 else "Échantillon") + (f" - {venue_option}" if venue_option != "Tous" else "")
-    fig_funnel = create_shot_funnel_chart(tot_shots, tot_sot, tot_goals, team_name=funnel_label, theme=theme)
-    st.plotly_chart(fig_funnel, use_container_width=True)
+funnel_label = (selected_teams[0] if len(selected_teams) == 1 else "Ensemble des clubs") + (f" - {venue_option}" if venue_option != "Tous" else "")
+fig_funnel = create_shot_funnel_chart(tot_shots, tot_sot, tot_goals, team_name=funnel_label, theme=theme)
+st.plotly_chart(fig_funnel, use_container_width=True)
 
-# 8. Zone Détail : Classement et Benchmark des clubs
+# 8. Classement tactique et efficacité des clubs (Niveau visuel dédié)
+st.markdown("---")
+st.subheader("Classement tactique et efficacité des clubs")
+st.caption("Comparaison de la capacité des clubs à convertir leurs situations chaudes en buts réels.")
+
 team_stats = compute_team_aggregates(df_filtered, target_teams=selected_teams, venue=venue_option)
 
-st.subheader("Classement comparatif de l'efficacité offensive")
-st.caption("Mesure de la capacité des clubs à convertir leurs situations chaudes en buts réels.")
-
 metric_labels = {
-    "Points / Tir Cadré": ("PointsParTirCadre", "Points / Tir Cadré"),
-    "Conversion Buts (%)": ("ConversionButsPct", "Taux de Conversion (%)"),
-    "Précision Cadrage (%)": ("PrecisionCadrePct", "Précision de Cadrage (%)"),
-    "Buts / Match": ("ButsParMatch", "Buts / Match")
+    "Points / Tir Cadré": ("PointsParTirCadre", "Points récoltés par tir cadré"),
+    "Conversion Buts (%)": ("ConversionButsPct", "Taux de conversion des tirs cadrés (%)"),
+    "Précision Cadrage (%)": ("PrecisionCadrePct", "Précision de cadrage (%)"),
+    "Buts / Match": ("ButsParMatch", "Moyenne de buts par match")
 }
 
 selected_metric_name = st.radio(
-    "Métrique d'étalonnage :",
+    "Métrique d'évaluation :",
     options=list(metric_labels.keys()),
     horizontal=True
 )
 metric_col, metric_display = metric_labels[selected_metric_name]
 
-# Sort by chosen metric for display
 team_stats_sorted = team_stats.sort_values(by=metric_col, ascending=False).reset_index(drop=True)
 
 col_chart, col_table = st.columns([1.2, 0.8])
@@ -174,7 +178,7 @@ with col_chart:
     st.plotly_chart(fig_rank, use_container_width=True)
 
 with col_table:
-    st.markdown("**Top clubs de l'échantillon sélectionné**")
+    st.markdown("**Tableau comparatif des clubs**")
     display_cols = ["Rang", "Team", "Points", "PrecisionCadrePct", "ConversionButsPct", "PointsParTirCadre"]
     st.dataframe(
         team_stats_sorted[display_cols].rename(columns={
@@ -184,9 +188,9 @@ with col_table:
             "PointsParTirCadre": "Pts / Tir cadré"
         }),
         use_container_width=True,
-        height=400,
+        height=420,
         hide_index=True
     )
 
 st.divider()
-st.caption("Projet Premier League Dashboard · Bachelor Data et IA · Ayoub AZACRI, Youssef EL HAJJI, Omar HAKIK, Youssef DEKHAIL")
+st.caption("Premier League Dashboard · Bachelor Data et IA · Ayoub AZACRI, Youssef EL HAJJI, Omar HAKIK, Youssef DEKHAIL")

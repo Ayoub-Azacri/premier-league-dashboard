@@ -35,6 +35,8 @@ def compute_executive_kpis(
         total_sot = float(df["TotalShotsTarget"].sum())
 
     goals_per_match = round(total_goals / total_matches, 2) if total_matches > 0 else 0.0
+    shots_per_match = round(total_shots / total_matches, 1) if total_matches > 0 else 0.0
+    sot_per_match = round(total_sot / total_matches, 1) if total_matches > 0 else 0.0
 
     # Historical 5-season Premier League baselines
     BASELINE_ACCURACY = 34.0  # 34.0% shots on target
@@ -43,11 +45,17 @@ def compute_executive_kpis(
     shot_accuracy = round(total_sot / total_shots * 100, 1) if total_shots > 0 else 0.0
     conversion_rate = round(total_goals / total_sot * 100, 1) if total_sot > 0 else 0.0
     points_per_sot = round((total_goals * 1.3) / total_sot, 2) if total_sot > 0 else 0.0
+    goals_per_sot = round(total_goals / total_sot, 2) if total_sot > 0 else 0.0
 
     return {
         "matches": total_matches,
         "total_goals": total_goals,
+        "total_shots": total_shots,
+        "total_sot": total_sot,
         "goals_per_match": goals_per_match,
+        "shots_per_match": shots_per_match,
+        "sot_per_match": sot_per_match,
+        "goals_per_sot": goals_per_sot,
         "shot_accuracy": shot_accuracy,
         "accuracy_diff": round(shot_accuracy - BASELINE_ACCURACY, 1),
         "conversion_rate": conversion_rate,

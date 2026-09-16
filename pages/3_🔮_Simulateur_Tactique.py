@@ -41,11 +41,7 @@ teams_list = get_available_teams(df_raw)
 st.title("Simulateur Tactique Prédictif : Confrontation & Espérance de Buts")
 st.caption("Modélisation prédictive d'aide à la décision basée sur les métriques d'efficacité historique des clubs.")
 
-st.markdown("""
-<div class="minto-card">
-    <strong>Usage pour le staff technique :</strong> Cet outil combine la puissance offensive relative, la résistance défensive et la prime de terrain pour simuler la probabilité de chaque issue de match avant la préparation tactique.
-</div>
-""", unsafe_allow_html=True)
+st.info("💡 **Outil d'anticipation tactique :** Ce modèle croise le réalisme offensif, la solidité défensive et l'effet du public pour estimer les probabilités de résultat et le scénario de score le plus plausible.")
 
 with st.container(border=True):
     col1, col2, col3 = st.columns([1.2, 1.2, 1])
