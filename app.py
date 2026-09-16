@@ -107,11 +107,12 @@ c2.metric(
     delta_color="normal" if kpi_data['conversion_diff'] >= 0 else "inverse"
 )
 waste_pct = round(100.0 - kpi_data['shot_accuracy'], 1)
+waste_diff = round(waste_pct - 66.0, 1)
 c3.metric(
     "Frappes hors cadre (Gaspillées)",
     f"{waste_pct:.1f} %",
-    f"~{kpi_data['shots_per_match'] - kpi_data['sot_per_match']:.1f} tirs perdus / match",
-    delta_color="off"
+    f"{waste_diff:+.1f} pts vs moyenne ligue (66,0 %)",
+    delta_color="inverse"
 )
 
 st.caption(
@@ -151,6 +152,8 @@ top_pts_sot = team_stats.sort_values(by="PointsParTirCadre", ascending=False).il
 # Repère historique 5 saisons pour les buts par match
 BASELINE_GOALS_PER_MATCH = 2.82
 goals_diff = round(kpi_data['goals_per_match'] - BASELINE_GOALS_PER_MATCH, 2)
+diff_clinical = round(top_clinical['ConversionButsPct'] - 31.0, 1)
+diff_pts_sot = round(top_pts_sot['PointsParTirCadre'] - 0.26, 2)
 
 k1, k2, k3 = st.columns(3)
 k1.metric(
@@ -162,14 +165,14 @@ k1.metric(
 k2.metric(
     "Club n°1 en finition",
     f"{top_clinical['Team']}",
-    f"{top_clinical['ConversionButsPct']:.1f} % de conversion",
-    delta_color="off"
+    f"{diff_clinical:+.1f} pts vs moyenne ligue ({top_clinical['ConversionButsPct']:.1f} %)",
+    delta_color="normal"
 )
 k3.metric(
     "Meilleure rentabilité au tir",
     f"{top_pts_sot['Team']}",
-    f"{top_pts_sot['PointsParTirCadre']:.2f} pt / tir cadré",
-    delta_color="off"
+    f"{diff_pts_sot:+.2f} pt vs moyenne ligue ({top_pts_sot['PointsParTirCadre']:.2f} pt/cadré)",
+    delta_color="normal"
 )
 
 metric_labels = {
