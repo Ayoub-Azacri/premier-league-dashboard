@@ -118,7 +118,7 @@ def create_efficiency_ranking_chart(team_df: pd.DataFrame, theme: str = "light")
         paper_bgcolor=bg_color,
         plot_bgcolor=bg_color,
         margin=dict(l=10, r=20, t=40, b=30),
-        height=450
+        height=max(180, min(520, len(top_teams) * 32 + 80))
     )
     return fig
 

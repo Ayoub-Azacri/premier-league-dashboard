@@ -79,10 +79,10 @@ def filter_matches(
 
     return filtered
 
-def compute_team_aggregates(df: pd.DataFrame) -> pd.DataFrame:
+def compute_team_aggregates(df: pd.DataFrame, target_teams: list = None) -> pd.DataFrame:
     """Aggregates match performance into team-level season stats."""
     records = []
-    teams = get_available_teams(df)
+    teams = target_teams if (target_teams and len(target_teams) > 0) else get_available_teams(df)
 
     for team in teams:
         home_m = df[df["HomeTeam"] == team]

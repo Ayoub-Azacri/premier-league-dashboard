@@ -64,3 +64,8 @@ def test_compute_team_aggregates():
     assert "PointsParTirCadre" in team_stats.columns
     assert team_stats["PrecisionCadrePct"].between(15, 60).all()
     assert team_stats["ConversionButsPct"].between(15, 60).all()
+
+    # Test target_teams filtering
+    targeted = compute_team_aggregates(df, target_teams=["Arsenal", "Chelsea"])
+    assert len(targeted) == 2
+    assert set(targeted["Team"]) == {"Arsenal", "Chelsea"}

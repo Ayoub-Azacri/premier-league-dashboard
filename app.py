@@ -110,7 +110,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 8. Zone Détail : Classement et Benchmark des clubs
-team_stats = compute_team_aggregates(df_filtered)
+team_stats = compute_team_aggregates(df_filtered, target_teams=selected_teams)
 
 st.subheader("Classement comparatif de l'efficacité offensive")
 st.caption("Mesure de la capacité des clubs à convertir leurs situations chaudes en buts réels.")
