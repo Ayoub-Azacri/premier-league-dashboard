@@ -18,19 +18,32 @@ def create_shot_funnel_chart(
     bg_color = "rgba(0,0,0,0)"
 
     stages = ["Tirs Totaux", "Tirs Cadrés", "Buts Marqués"]
-    values = [int(total_shots), int(shots_target), int(goals)]
+    val_shots = int(total_shots)
+    val_sot = int(shots_target)
+    val_goals = int(goals)
+
+    pct_sot_init = (val_sot / val_shots * 100) if val_shots > 0 else 0
+    pct_goals_sot = (val_goals / val_sot * 100) if val_sot > 0 else 0
+
+    custom_texts = [
+        f"{val_shots:,}".replace(",", " ") + " tirs (100 %)",
+        f"{val_sot:,}".replace(",", " ") + f" cadrés ({pct_sot_init:.1f} %)",
+        f"{val_goals:,}".replace(",", " ") + f" buts ({pct_goals_sot:.1f} % convertis)"
+    ]
 
     fig = go.Figure(go.Funnel(
         y=stages,
         x=values,
-        textinfo="value+percent initial+percent previous",
+        text=custom_texts,
+        textinfo="text",
         textposition="inside",
-        textfont=dict(size=12, color="#FFFFFF"),
+        textfont=dict(size=12, color="#FFFFFF", family="Arial"),
         marker=dict(
             color=["#2563EB", "#0D9488", "#16A34A"],
             line=dict(color="#0F172A", width=1)
         ),
-        connector=dict(line=dict(color="#94A3B8", width=1, dash="dot"))
+        connector=dict(line=dict(color="#94A3B8", width=1, dash="dot")),
+        hovertemplate="<b>%{y}</b><br>Volume : %{x:,}<extra></extra>"
     ))
 
     fig.update_layout(
