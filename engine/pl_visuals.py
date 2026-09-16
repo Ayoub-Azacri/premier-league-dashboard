@@ -156,10 +156,10 @@ def create_quadrant_chart(team_df: pd.DataFrame, theme: str = "light") -> go.Fig
                   fillcolor="rgba(220, 38, 38, 0.08)", line_width=0, layer="below")
 
     color_palette = {
-        "Chirurgicaux (Haute précision & conversion)": "#16A34A",
-        "Volumeux (Domination stérile devant le but)": "#2563EB",
-        "Réalistes (Opportunisme clinique en contre)": "#D97706",
-        "En difficulté (Manque de précision et de réalisme)": "#DC2626"
+        "Haute efficacité (Tirs choisis & finition)": "#16A34A",
+        "Manque de tranchant (Cadrent sans marquer)": "#2563EB",
+        "Opportunistes en contre (Peu de tirs, forte finition)": "#D97706",
+        "Attaque en panne (Ni précision, ni finition)": "#DC2626"
     }
 
     for prof, grp in team_df.groupby("ProfilTactique"):
@@ -177,7 +177,7 @@ def create_quadrant_chart(team_df: pd.DataFrame, theme: str = "light") -> go.Fig
                 line=dict(color="#0F172A", width=1.2),
                 opacity=0.88
             ),
-            hovertemplate="<b>%{text}</b><br>Précision : %{x:.1f} %<br>Conversion : %{y:.1f} %<br>Points totaux : %{customdata[0]}<br>Points/Tir cadré : %{customdata[1]:.2f}<extra></extra>",
+            hovertemplate="<b>%{text}</b><br>Précision : %{x:.1f} %<br>Finition : %{y:.1f} %<br>Points au classement : %{customdata[0]}<br>Points / tir cadré : %{customdata[1]:.2f}<extra></extra>",
             customdata=grp[["Points", "PointsParTirCadre"]].values
         ))
 
@@ -186,24 +186,24 @@ def create_quadrant_chart(team_df: pd.DataFrame, theme: str = "light") -> go.Fig
     fig.add_hline(y=med_y, line_dash="dash", line_color="#94A3B8", line_width=1.5)
 
     # Quadrant annotations
-    fig.add_annotation(x=x_max - 1, y=y_max - 1, text="<b>ZONE ÉLITE : Chirurgicaux</b>", showarrow=False, font=dict(color="#16A34A", size=11))
-    fig.add_annotation(x=x_min + 1, y=y_max - 1, text="<b>Contre-attaque réaliste</b>", showarrow=False, font=dict(color="#D97706", size=11))
-    fig.add_annotation(x=x_max - 1, y=y_min + 1, text="<b>Volume stérile</b>", showarrow=False, font=dict(color="#2563EB", size=11))
-    fig.add_annotation(x=x_min + 1, y=y_min + 1, text="<b>Zone de relégation</b>", showarrow=False, font=dict(color="#DC2626", size=11))
+    fig.add_annotation(x=x_max - 1, y=y_max - 1, text="<b>Haute efficacité (Cadrent et marquent)</b>", showarrow=False, font=dict(color="#16A34A", size=11))
+    fig.add_annotation(x=x_min + 1, y=y_max - 1, text="<b>Opportunistes en contre</b>", showarrow=False, font=dict(color="#D97706", size=11))
+    fig.add_annotation(x=x_max - 1, y=y_min + 1, text="<b>Manque de tranchant (Cadrent sans marquer)</b>", showarrow=False, font=dict(color="#2563EB", size=11))
+    fig.add_annotation(x=x_min + 1, y=y_min + 1, text="<b>Attaque en panne</b>", showarrow=False, font=dict(color="#DC2626", size=11))
 
     fig.update_layout(
         title=dict(
-            text="<b>Matrice Tactique : Précision au cadrage vs Conversion clinique (Taille = Points)</b>",
+            text="<b>Cartographie offensive : Précision au tir vs Finition devant le but (Taille = Points)</b>",
             font=dict(size=15, color=text_color)
         ),
         xaxis=dict(
-            title="Précision au cadrage (Tirs cadrés / Tirs totaux en %)",
+            title="Précision au tir (Tirs cadrés / tirs tentés en %)",
             range=[x_min, x_max],
             color=text_color,
             gridcolor="#334155" if is_dark else "#F1F5F9"
         ),
         yaxis=dict(
-            title="Taux de conversion (Buts / Tirs cadrés en %)",
+            title="Finition devant le but (Buts / tirs cadrés en %)",
             range=[y_min, y_max],
             color=text_color,
             gridcolor="#334155" if is_dark else "#F1F5F9"
@@ -227,11 +227,11 @@ def create_club_radar_chart(
     bg_color = "rgba(0,0,0,0)"
 
     categories = [
-        "Précision Cadrage (%)",
-        "Conversion Buts (%)",
-        "Points / Tir Cadré (x100)",
-        "Tirs Cadrés / Match (x10)",
-        "Points / Match (x25)"
+        "Précision au tir (%)",
+        "Finition des tirs cadrés (%)",
+        "Points récoltés / tir cadré (x100)",
+        "Tirs cadrés / match (x10)",
+        "Points au classement / match (x25)"
     ]
 
     # Benchmark league average

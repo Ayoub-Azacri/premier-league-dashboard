@@ -52,49 +52,51 @@ if df_filtered.empty:
 team_stats = compute_team_aggregates(df_filtered, target_teams=teams, venue=venue)
 quadrant_df = compute_quadrant_profiles(team_stats)
 
-# Titre portant le message (selon les consignes de l'enseignant)
-st.title("Efficacité Offensive : La précision et le réalisme surpassent le volume de tirs")
-st.caption("Matrice décisionnelle croisant la précision au cadrage (SoT %) et la conversion clinique (Buts / Tir cadré).")
+# Titre portant le message tactique
+st.title("Efficacité offensive : cadrer et convertir plutôt que tirer à l'aveugle")
+st.caption("Évaluation de la qualité des tirs et du sang-froid devant le gardien adverse.")
 
-st.info("💡 **Repère tactique :** La corrélation entre volume brut de tirs et points récoltés est faible (r = 0,28). En revanche, le couple Précision-Conversion explique plus de 62 % du classement final. Tirer sans cadrer offre des relances faciles à l'adversaire.")
+st.info("💡 **Repère pour le coach :** Accumuler les frappes lointaines sans cadrer pénalise l'équipe et offre des relances faciles à l'adversaire. La différence entre les équipes du haut de tableau et les relégables se fait d'abord sur la sélection du tir et le calme devant le but.")
 
 # Graphique Quadrant
 fig_quad = create_quadrant_chart(quadrant_df, theme=theme)
 st.plotly_chart(fig_quad, use_container_width=True)
 
 # Décomposition des profils
-st.subheader("Analyse des 4 archétypes tactiques")
+st.subheader("Lecture tactique des 4 profils d'équipes")
 
 c1, c2 = st.columns(2)
 with c1:
-    st.markdown("### 🏆 Chirurgicaux (Zone Élite)")
-    st.write("Précision supérieure à 34 % et conversion supérieure à 31 %. Ces équipes créent des situations de tir de haute qualité et sanctionnent avec sang-froid.")
-    elite_teams = quadrant_df[quadrant_df["ProfilTactique"].str.startswith("Chirurgicaux")]["Team"].tolist()
+    st.markdown("### 🏆 Haute efficacité (Cadrent et marquent)")
+    st.write("Précision supérieure à 34 % et finition supérieure à 31 %. Ces équipes créent des situations de tir nettes et trompent le gardien une fois sur trois.")
+    elite_teams = quadrant_df[quadrant_df["ProfilTactique"].str.startswith("Haute efficacité")]["Team"].tolist()
     st.info(f"Équipes dans cette zone : **{', '.join(elite_teams) if elite_teams else 'Aucune'}**")
 
-    st.markdown("### ⚡ Réalistes (Contre-attaque clinique)")
-    st.write("Précision sous la médiane mais réalisme extrême devant le but. Profil typique des équipes de bloc bas exploitant la vitesse en transition.")
-    realist_teams = quadrant_df[quadrant_df["ProfilTactique"].str.startswith("Réalistes")]["Team"].tolist()
+    st.markdown("### ⚡ Opportunistes en contre (Peu de frappes, grande finition)")
+    st.write("Équipes souvent regroupées en bloc bas : elles tirent peu car elles subissent la possession, mais chaque frappe cadrée est une balle de but exploitée à haute intensité.")
+    realist_teams = quadrant_df[quadrant_df["ProfilTactique"].str.startswith("Opportunistes")]["Team"].tolist()
     st.warning(f"Équipes dans cette zone : **{', '.join(realist_teams) if realist_teams else 'Aucune'}**")
 
 with c2:
-    st.markdown("### ⚠️ Volumeux (Domination stérile)")
-    st.write("Beaucoup de tirs cadrés mais très faible conversion. Beaucoup d'énergie dépensée pour un rendement faible face à des gardiens en réussite.")
-    vol_teams = quadrant_df[quadrant_df["ProfilTactique"].str.startswith("Volumeux")]["Team"].tolist()
+    st.markdown("### ⚠️ Manque de tranchant (Cadrent sans marquer)")
+    st.write("Beaucoup de tirs cadrés mais peu de buts. Frappes trop écrasées, prévisibles ou gardiens adverses en réussite : l'énergie dépensée ne se traduit pas au tableau d'affichage.")
+    vol_teams = quadrant_df[quadrant_df["ProfilTactique"].str.startswith("Manque de tranchant")]["Team"].tolist()
     st.info(f"Équipes dans cette zone : **{', '.join(vol_teams) if vol_teams else 'Aucune'}**")
 
-    st.markdown("### 🚨 En difficulté (Zone critique)")
-    st.write("Déficit cumulé de précision et de finition. Souvent corrélé aux trois dernières places du championnat.")
-    releg_teams = quadrant_df[quadrant_df["ProfilTactique"].str.startswith("En difficulté")]["Team"].tolist()
+    st.markdown("### 🚨 Attaque en panne (Ni précision, ni finition)")
+    st.write("Déficit cumulé au cadrage et à la finition. Le danger pour la défense adverse est quasi nul tant que les lignes restent en place.")
+    releg_teams = quadrant_df[quadrant_df["ProfilTactique"].str.startswith("Attaque en panne")]["Team"].tolist()
+    st.error(f"Équipes dans cette zone : **{', '.join(releg_teams) if releg_teams else 'Aucune'}**")
+
 st.divider()
 
 # Profilage Radar 360°
-st.subheader("Radar Tactique 360° : Évaluation Scout & Profilage d'Équipe")
-st.caption("Benchmark multidimensionnel comparant les clubs sélectionnés aux standards moyens de la Premier League (Précision, Conversion, Points/Tir cadré, Volume, Rendement).")
+st.subheader("Radar comparatif : profil d'attaque d'un club face à la ligue")
+st.caption("Comparez les caractéristiques offensives des clubs sélectionnés aux repères moyens de Premier League.")
 
 target_radar = teams if len(teams) > 0 else team_stats.head(2)["Team"].tolist()
 fig_radar = create_club_radar_chart(team_stats, selected_teams=target_radar, theme=theme)
 st.plotly_chart(fig_radar, use_container_width=True)
 
 st.divider()
-st.caption("Premier League Decision Platform · HETIC MD4")
+st.caption("Premier League Dashboard · Bachelor Data et IA · Ayoub AZACRI, Youssef EL HAJJI, Omar HAKIK, Youssef DEKHAIL")

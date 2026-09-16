@@ -76,13 +76,13 @@ def compute_quadrant_profiles(team_df: pd.DataFrame) -> pd.DataFrame:
         acc = row["PrecisionCadrePct"]
         conv = row["ConversionButsPct"]
         if acc >= med_acc and conv >= med_conv:
-            return "Chirurgicaux (Haute précision & conversion)"
+            return "Haute efficacité (Tirs choisis & finition)"
         elif acc >= med_acc and conv < med_conv:
-            return "Volumeux (Domination stérile devant le but)"
+            return "Manque de tranchant (Cadrent sans marquer)"
         elif acc < med_acc and conv >= med_conv:
-            return "Réalistes (Opportunisme clinique en contre)"
+            return "Opportunistes en contre (Peu de tirs, forte finition)"
         else:
-            return "En difficulté (Manque de précision et de réalisme)"
+            return "Attaque en panne (Ni précision, ni finition)"
 
     df_q["ProfilTactique"] = df_q.apply(assign_profile, axis=1)
     df_q["MedianPrecision"] = med_acc
