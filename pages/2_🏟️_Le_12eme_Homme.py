@@ -40,7 +40,11 @@ st.caption("Analyse tactique sur 1 900 matchs de Premier League : comment l'abse
 
 st.info("💡 **Ce que les chiffres révèlent au staff :** Recevoir à domicile offre d'ordinaire un avantage décisif (près d'une victoire sur deux). Privées de leurs supporters en 2020-21, les équipes locales ont vu leur taux de succès s'effondrer : les visiteurs ont remporté plus de matchs (40,3 %) que les clubs receveurs (37,9 %).")
 
-# 3 KPIs d'impact
+# 1. Niveau 1 : Évolution temporelle sur 5 saisons
+st.markdown("---")
+st.subheader("1. Évolution des victoires sur 5 saisons : la bascule historique")
+st.caption("Observez le croisement lors de la saison à huis clos : la courbe des victoires à l'extérieur passe pour la première fois au-dessus de celle du domicile.")
+
 k1, k2, k3 = st.columns(3)
 k1.metric(
     "Victoires à domicile avec public",
@@ -60,28 +64,75 @@ k3.metric(
     delta_color="normal"
 )
 
-# 1. Évolution temporelle sur 5 saisons
-st.subheader("1. Évolution des victoires sur 5 saisons : la bascule historique")
-st.caption("Observez le croisement lors de la saison à huis clos : la courbe des victoires à l'extérieur passe pour la première fois au-dessus de celle du domicile.")
 seasons_df = compute_season_outcomes(df_raw)
 fig_timeline = create_seasons_timeline_chart(seasons_df, theme=theme)
 st.plotly_chart(fig_timeline, use_container_width=True)
 
-# 2. Zone d'impact par club et synthèse
+# 2. Niveau 2 : Sensibilité des clubs à leur public (Dumbbell)
+st.markdown("---")
 st.subheader("2. Quels clubs dépendent le plus de la ferveur de leur stade ?")
 st.caption("Chute du pourcentage de victoires à domicile sans public. Les stades à forte ambiance comme Anfield (Liverpool), St James' Park (Newcastle) ou l'Emirates (Arsenal) accusent les plus fortes baisses.")
-col_db, col_stack = st.columns([1.25, 0.75])
 
-with col_db:
-    sens_df = compute_club_crowd_sensitivity(df_raw)
-    fig_db = create_club_home_impact_dumbbell(sens_df, theme=theme)
-    st.plotly_chart(fig_db, use_container_width=True)
+sens_df = compute_club_crowd_sensitivity(df_raw)
+top_drop = sens_df.iloc[0]
+median_drop = round(sens_df["DiffPct"].median(), 1)
+most_resilient = sens_df.sort_values("DiffPct", ascending=False).iloc[0]
 
-with col_stack:
-    fig_home = create_home_advantage_comparison_chart(comp_stats, theme=theme)
-    st.plotly_chart(fig_home, use_container_width=True)
+d1, d2, d3 = st.columns(3)
+d1.metric(
+    "Plus forte chute sans public",
+    f"{top_drop['Team']}",
+    f"{top_drop['DiffPct']:.1f} pts à domicile sans stade",
+    delta_color="inverse"
+)
+d2.metric(
+    "Baisse médiane des clubs",
+    f"{median_drop:.1f} pts",
+    "Chute moyenne observée à domicile",
+    delta_color="inverse"
+)
+d3.metric(
+    "Club le plus régulier sans public",
+    f"{most_resilient['Team']}",
+    f"{most_resilient['DiffPct']:+.1f} pts de variation",
+    delta_color="normal" if most_resilient['DiffPct'] >= 0 else "off"
+)
 
-st.subheader("Leçons tactiques pour le staff technique")
+fig_db = create_club_home_impact_dumbbell(sens_df, theme=theme)
+st.plotly_chart(fig_db, use_container_width=True)
+
+# 3. Niveau 3 : Répartition globale des issues (Public vs Huis clos)
+st.markdown("---")
+st.subheader("3. Répartition globale des issues : l'avantage terrain neutralisé")
+st.caption("Comparaison globale de la distribution des résultats : victoires à domicile, matchs nuls et victoires à l'extérieur.")
+
+diff_ext = round(comp_stats['covid']['away_win'] - comp_stats['normal']['away_win'], 1)
+r1, r2, r3 = st.columns(3)
+r1.metric(
+    "Différentiel buts avec public",
+    f"+{comp_stats['normal']['diff_goals']:.2f} but / match",
+    "Avantage net pour l'équipe qui reçoit",
+    delta_color="normal"
+)
+r2.metric(
+    "Différentiel buts à huis clos",
+    f"+{comp_stats['covid']['diff_goals']:.2f} but / match",
+    "-0.37 but d'effondrement de l'avantage terrain",
+    delta_color="inverse"
+)
+r3.metric(
+    "Part de victoires des visiteurs",
+    f"{comp_stats['covid']['away_win']:.1f} % à huis clos",
+    f"{diff_ext:+.1f} pts vs normal ({comp_stats['normal']['away_win']:.1f} %)",
+    delta_color="normal"
+)
+
+fig_home = create_home_advantage_comparison_chart(comp_stats, theme=theme)
+st.plotly_chart(fig_home, use_container_width=True)
+
+# 4. Niveau 4 : Leçons tactiques pour le staff technique
+st.markdown("---")
+st.subheader("4. Leçons tactiques pour le staff technique")
 
 c1, c2 = st.columns(2)
 with c1:
