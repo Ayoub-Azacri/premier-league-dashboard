@@ -2,7 +2,11 @@ import pandas as pd
 import numpy as np
 import math
 
-def compute_executive_kpis(df: pd.DataFrame) -> dict:
+def compute_executive_kpis(
+    df: pd.DataFrame,
+    venue: str = "Tous",
+    teams: list = None
+) -> dict:
     """Computes executive-level actionable KPIs contextualized against league baselines."""
     total_matches = len(df)
     if total_matches == 0:
@@ -13,11 +17,24 @@ def compute_executive_kpis(df: pd.DataFrame) -> dict:
             "points_per_sot": 0.0
         }
 
-    total_goals = int(df["TotalGoals"].sum())
-    goals_per_match = round(total_goals / total_matches, 2)
+    if venue == "Domicile":
+        sub = df[df["HomeTeam"].isin(teams)] if (teams and len(teams) > 0) else df
+        total_goals = int(sub["FTHG"].sum())
+        total_shots = float(sub["HS"].sum())
+        total_sot = float(sub["HST"].sum())
+        total_matches = len(sub)
+    elif venue == "Extérieur":
+        sub = df[df["AwayTeam"].isin(teams)] if (teams and len(teams) > 0) else df
+        total_goals = int(sub["FTAG"].sum())
+        total_shots = float(sub["AS"].sum())
+        total_sot = float(sub["AST"].sum())
+        total_matches = len(sub)
+    else:
+        total_goals = int(df["TotalGoals"].sum())
+        total_shots = float(df["TotalShots"].sum())
+        total_sot = float(df["TotalShotsTarget"].sum())
 
-    total_shots = float(df["TotalShots"].sum())
-    total_sot = float(df["TotalShotsTarget"].sum())
+    goals_per_match = round(total_goals / total_matches, 2) if total_matches > 0 else 0.0
 
     # Historical 5-season Premier League baselines
     BASELINE_ACCURACY = 34.0  # 34.0% shots on target

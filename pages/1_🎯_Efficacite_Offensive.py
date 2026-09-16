@@ -44,7 +44,7 @@ if df_filtered.empty:
     st.warning("⚠️ Aucun match pour cette sélection.")
     st.stop()
 
-team_stats = compute_team_aggregates(df_filtered, target_teams=teams)
+team_stats = compute_team_aggregates(df_filtered, target_teams=teams, venue=venue)
 quadrant_df = compute_quadrant_profiles(team_stats)
 
 # Titre portant le message (selon les consignes de l'enseignant)

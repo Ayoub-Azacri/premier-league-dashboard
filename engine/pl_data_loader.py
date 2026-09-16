@@ -79,8 +79,12 @@ def filter_matches(
 
     return filtered
 
-def compute_team_aggregates(df: pd.DataFrame, target_teams: list = None) -> pd.DataFrame:
-    """Aggregates match performance into team-level season stats."""
+def compute_team_aggregates(
+    df: pd.DataFrame,
+    target_teams: list = None,
+    venue: str = "Tous"
+) -> pd.DataFrame:
+    """Aggregates match performance into team-level season stats with home/away venue filtering."""
     records = []
     teams = target_teams if (target_teams and len(target_teams) > 0) else get_available_teams(df)
 
@@ -88,26 +92,48 @@ def compute_team_aggregates(df: pd.DataFrame, target_teams: list = None) -> pd.D
         home_m = df[df["HomeTeam"] == team]
         away_m = df[df["AwayTeam"] == team]
 
-        played = len(home_m) + len(away_m)
-        if played == 0:
-            continue
+        if venue == "Domicile":
+            played = len(home_m)
+            if played == 0:
+                continue
+            wins = int((home_m["FTR"] == "H").sum())
+            draws = int((home_m["FTR"] == "D").sum())
+            losses = int((home_m["FTR"] == "A").sum())
+            goals_for = int(home_m["FTHG"].sum())
+            goals_against = int(home_m["FTAG"].sum())
+            shots_for = float(home_m["HS"].sum())
+            shots_target_for = float(home_m["HST"].sum())
+            shots_against = float(home_m["AS"].sum())
+            shots_target_against = float(home_m["AST"].sum())
+        elif venue == "Extérieur":
+            played = len(away_m)
+            if played == 0:
+                continue
+            wins = int((away_m["FTR"] == "A").sum())
+            draws = int((away_m["FTR"] == "D").sum())
+            losses = int((away_m["FTR"] == "H").sum())
+            goals_for = int(away_m["FTAG"].sum())
+            goals_against = int(away_m["FTHG"].sum())
+            shots_for = float(away_m["AS"].sum())
+            shots_target_for = float(away_m["AST"].sum())
+            shots_against = float(away_m["HS"].sum())
+            shots_target_against = float(away_m["HST"].sum())
+        else:
+            played = len(home_m) + len(away_m)
+            if played == 0:
+                continue
+            wins = int((home_m["FTR"] == "H").sum() + (away_m["FTR"] == "A").sum())
+            draws = int((home_m["FTR"] == "D").sum() + (away_m["FTR"] == "D").sum())
+            losses = int((home_m["FTR"] == "A").sum() + (away_m["FTR"] == "H").sum())
+            goals_for = int(home_m["FTHG"].sum() + away_m["FTAG"].sum())
+            goals_against = int(home_m["FTAG"].sum() + away_m["FTHG"].sum())
+            shots_for = float(home_m["HS"].sum() + away_m["AS"].sum())
+            shots_target_for = float(home_m["HST"].sum() + away_m["AST"].sum())
+            shots_against = float(home_m["AS"].sum() + away_m["HS"].sum())
+            shots_target_against = float(home_m["AST"].sum() + away_m["HST"].sum())
 
-        # Wins, Draws, Losses
-        wins = int((home_m["FTR"] == "H").sum() + (away_m["FTR"] == "A").sum())
-        draws = int((home_m["FTR"] == "D").sum() + (away_m["FTR"] == "D").sum())
-        losses = int((home_m["FTR"] == "A").sum() + (away_m["FTR"] == "H").sum())
         points = wins * 3 + draws
-
-        # Goals
-        goals_for = int(home_m["FTHG"].sum() + away_m["FTAG"].sum())
-        goals_against = int(home_m["FTAG"].sum() + away_m["FTHG"].sum())
         diff = goals_for - goals_against
-
-        # Shots
-        shots_for = float(home_m["HS"].sum() + away_m["AS"].sum())
-        shots_target_for = float(home_m["HST"].sum() + away_m["AST"].sum())
-        shots_against = float(home_m["AS"].sum() + away_m["HS"].sum())
-        shots_target_against = float(home_m["AST"].sum() + away_m["HST"].sum())
 
         # Ratios
         accuracy_pct = (shots_target_for / shots_for * 100) if shots_for > 0 else 0.0

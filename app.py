@@ -82,7 +82,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 6. Zone KPIs Exécutifs (2 à 3 indicateurs maximum, contextualisés)
-kpi_data = compute_executive_kpis(df_filtered)
+kpi_data = compute_executive_kpis(df_filtered, venue=venue_option, teams=selected_teams)
 
 c1, c2, c3 = st.columns(3)
 c1.metric(
@@ -98,7 +98,7 @@ c2.metric(
     delta_color="normal" if kpi_data['conversion_diff'] >= 0 else "inverse"
 )
 c3.metric(
-    "Moyenne de buts / match",
+    f"Buts / match ({venue_option})",
     f"{kpi_data['goals_per_match']:.2f}",
     f"{kpi_data['matches']} matchs analysés"
 )
@@ -115,15 +115,27 @@ with col_minto:
     st.info("💡 **Observation clé :** Près de deux tiers des frappes (65 %) sont gaspillées hors cadre. La priorité d'entraînement doit porter sur la sélection des tirs plutôt que sur le volume brut.")
 
 with col_funnel:
-    tot_shots = df_filtered["TotalShots"].sum()
-    tot_sot = df_filtered["TotalShotsTarget"].sum()
-    tot_goals = df_filtered["TotalGoals"].sum()
-    funnel_label = selected_teams[0] if len(selected_teams) == 1 else "Échantillon analysé"
+    if venue_option == "Domicile":
+        sub_f = df_filtered[df_filtered["HomeTeam"].isin(selected_teams)] if (selected_teams and len(selected_teams) > 0) else df_filtered
+        tot_shots = sub_f["HS"].sum()
+        tot_sot = sub_f["HST"].sum()
+        tot_goals = sub_f["FTHG"].sum()
+    elif venue_option == "Extérieur":
+        sub_f = df_filtered[df_filtered["AwayTeam"].isin(selected_teams)] if (selected_teams and len(selected_teams) > 0) else df_filtered
+        tot_shots = sub_f["AS"].sum()
+        tot_sot = sub_f["AST"].sum()
+        tot_goals = sub_f["FTAG"].sum()
+    else:
+        tot_shots = df_filtered["TotalShots"].sum()
+        tot_sot = df_filtered["TotalShotsTarget"].sum()
+        tot_goals = df_filtered["TotalGoals"].sum()
+
+    funnel_label = (selected_teams[0] if len(selected_teams) == 1 else "Échantillon") + (f" - {venue_option}" if venue_option != "Tous" else "")
     fig_funnel = create_shot_funnel_chart(tot_shots, tot_sot, tot_goals, team_name=funnel_label, theme=theme)
     st.plotly_chart(fig_funnel, use_container_width=True)
 
 # 8. Zone Détail : Classement et Benchmark des clubs
-team_stats = compute_team_aggregates(df_filtered, target_teams=selected_teams)
+team_stats = compute_team_aggregates(df_filtered, target_teams=selected_teams, venue=venue_option)
 
 st.subheader("Classement comparatif de l'efficacité offensive")
 st.caption("Mesure de la capacité des clubs à convertir leurs situations chaudes en buts réels.")

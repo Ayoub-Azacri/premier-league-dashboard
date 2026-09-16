@@ -69,3 +69,12 @@ def test_compute_team_aggregates():
     targeted = compute_team_aggregates(df, target_teams=["Arsenal", "Chelsea"])
     assert len(targeted) == 2
     assert set(targeted["Team"]) == {"Arsenal", "Chelsea"}
+
+    # Test venue filtering (Home vs Away)
+    home_stats = compute_team_aggregates(df, target_teams=["Arsenal"], venue="Domicile")
+    away_stats = compute_team_aggregates(df, target_teams=["Arsenal"], venue="Extérieur")
+    assert home_stats.iloc[0]["Matchs"] == 95
+    assert away_stats.iloc[0]["Matchs"] == 95
+    # Arsenal earned more points at home than away
+    assert home_stats.iloc[0]["Points"] > away_stats.iloc[0]["Points"]
+
