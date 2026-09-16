@@ -2,8 +2,13 @@ import streamlit as st
 import pandas as pd
 import sys
 import os
+import importlib
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+for mod in ["engine.pl_data_loader", "engine.pl_metrics", "engine.pl_visuals", "engine.pl_visuals_crowd", "engine.pl_styles"]:
+    if mod in sys.modules:
+        importlib.reload(sys.modules[mod])
 
 from engine.pl_data_loader import (
     load_pl_data,
