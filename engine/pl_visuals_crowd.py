@@ -42,7 +42,7 @@ def create_home_advantage_comparison_chart(comp_stats: dict, theme: str = "light
     fig.update_layout(
         barmode='stack',
         title=dict(
-            text="<b>Synthèse Globale : Répartition des issues (Normal vs Huis clos)</b>",
+            text="<b>Répartition des issues : Avec public vs Huis clos</b>",
             font=dict(size=14, color=text_color)
         ),
         xaxis=dict(color=text_color),
@@ -102,7 +102,7 @@ def create_seasons_timeline_chart(seasons_df: pd.DataFrame, theme: str = "light"
 
     fig.update_layout(
         title=dict(
-            text="<b>Évolution Chronologique (2019–2024) : L'inversion historique du Huis Clos</b>",
+            text="<b>Évolution des victoires (2019-2024) : Le croisement historique du huis clos</b>",
             font=dict(size=14, color=text_color)
         ),
         xaxis=dict(title="Saison", color=text_color),
@@ -158,7 +158,7 @@ def create_club_home_impact_dumbbell(sensitivity_df: pd.DataFrame, theme: str = 
 
     fig.update_layout(
         title=dict(
-            text="<b>L'Effet Anfield & St James' Park : Chute du taux de victoires à domicile sans supporters</b>",
+            text="<b>Sensibilité au public : Chute du taux de victoires à domicile sans supporters</b>",
             font=dict(size=14, color=text_color)
         ),
         xaxis=dict(

@@ -24,7 +24,7 @@ from engine.pl_visuals import (
 )
 
 st.set_page_config(
-    page_title="Le 12e Homme · Premier League",
+    page_title="L'Effet Domicile · Premier League",
     page_icon="🏟️",
     layout="wide"
 )
@@ -35,36 +35,41 @@ st.markdown(get_custom_css(theme), unsafe_allow_html=True)
 df_raw = load_pl_data()
 comp_stats = compute_home_advantage_comparison(df_raw)
 
-st.title("Le 12e Homme : L'avantage à domicile s'est effondré de 8 points pendant le huis clos COVID")
-st.caption("Étude comparative sur 1 900 matchs démontrant l'impact statistique direct de la présence des supporters.")
+st.title("L'effet domicile : le public fait-il vraiment gagner les matchs ?")
+st.caption("Analyse tactique sur 1 900 matchs de Premier League : comment l'absence de supporters en 2020-21 a transformé le comportement des équipes.")
 
-st.info("💡 **Constat statistique :** En temps normal, jouer à domicile assure 46,2 % de victoires. Durant la saison 2020-21 disputée à huis clos, les victoires à domicile sont tombées à 37,9 % tandis que les victoires à l'extérieur sont devenues majoritaires (40,3 %), une anomalie unique dans l'histoire du football anglais.")
+st.info("💡 **Ce que les chiffres révèlent au staff :** Recevoir à domicile offre d'ordinaire un avantage décisif (près d'une victoire sur deux). Privées de leurs supporters en 2020-21, les équipes locales ont vu leur taux de succès s'effondrer : les visiteurs ont remporté plus de matchs (40,3 %) que les clubs receveurs (37,9 %).")
 
 # 3 KPIs d'impact
 k1, k2, k3 = st.columns(3)
 k1.metric(
-    "Victoires domicile (Normales)",
+    "Victoires à domicile avec public",
     f"{comp_stats['normal']['home_win']:.1f} %",
-    "4 saisons avec public"
+    "Standard habituel en Premier League"
 )
 k2.metric(
-    "Victoires domicile (Huis clos COVID)",
+    "Victoires à domicile à huis clos",
     f"{comp_stats['covid']['home_win']:.1f} %",
-    f"-{comp_stats['home_drop_pts']:.1f} pts de chute",
+    f"-{comp_stats['home_drop_pts']:.1f} pts sans supporters",
     delta_color="inverse"
 )
 k3.metric(
-    "Surcroît victoires extérieur",
+    "Victoires des visiteurs à huis clos",
     f"{comp_stats['covid']['away_win']:.1f} %",
-    f"+{comp_stats['away_boost_pts']:.1f} pts vs normal"
+    f"+{comp_stats['away_boost_pts']:.1f} pts pour les visiteurs",
+    delta_color="normal"
 )
 
 # 1. Évolution temporelle sur 5 saisons
+st.subheader("1. Évolution des victoires sur 5 saisons : la bascule historique")
+st.caption("Observez le croisement lors de la saison à huis clos : la courbe des victoires à l'extérieur passe pour la première fois au-dessus de celle du domicile.")
 seasons_df = compute_season_outcomes(df_raw)
 fig_timeline = create_seasons_timeline_chart(seasons_df, theme=theme)
 st.plotly_chart(fig_timeline, use_container_width=True)
 
 # 2. Zone d'impact par club et synthèse
+st.subheader("2. Quels clubs dépendent le plus de la ferveur de leur stade ?")
+st.caption("Chute du pourcentage de victoires à domicile sans public. Les stades à forte ambiance comme Anfield (Liverpool), St James' Park (Newcastle) ou l'Emirates (Arsenal) accusent les plus fortes baisses.")
 col_db, col_stack = st.columns([1.25, 0.75])
 
 with col_db:
@@ -76,16 +81,16 @@ with col_stack:
     fig_home = create_home_advantage_comparison_chart(comp_stats, theme=theme)
     st.plotly_chart(fig_home, use_container_width=True)
 
-st.subheader("Ce que révèle l'expérience naturelle du huis clos")
+st.subheader("Leçons tactiques pour le staff technique")
 
 c1, c2 = st.columns(2)
 with c1:
-    st.markdown("### 📣 Pression psychologique et arbitrage")
-    st.write("L'analyse des sanctions disciplinaires montre que l'écart de cartons jaunes entre visiteurs et receveurs s'est resserré de 38 % à huis clos. Sans les clameurs du stade, l'arbitrage est plus neutre et le visiteur subit moins d'inhibition.")
+    st.markdown("### 📋 Préparation des matchs à l'extérieur")
+    st.write("Sans la pression acoustique du public adverse, les joueurs visiteurs osent presser plus haut, tentent plus de passes vers l'avant et commettent moins de fautes sous panique. Pour un entraîneur en déplacement, la donnée confirme qu'il ne faut pas se replier en bloc bas mais imposer son jeu.")
 
 with c2:
-    st.markdown("### ⚽ Différentiel de buts net")
-    st.write(f"En présence du public, l'équipe à domicile bénéficie d'un différentiel moyen de **+{comp_stats['normal']['diff_goals']} but par match**. Durant le huis clos, ce surplus est tombé à **+{comp_stats['covid']['diff_goals']} but**, effaçant presque totalement la forteresse du domicile.")
+    st.markdown("### ⚖️ Pression arbitrale et gestion des temps faibles")
+    st.write("La présence des supporters pèse directement sur les décisions arbitrales lors des moments chauds. Avec du public, les receveurs obtiennent un écart de +0,44 but par match en moyenne. À huis clos, cet avantage tombe à seulement +0,07 but, prouvant que le stade protège l'équipe qui reçoit.")
 
 st.divider()
-st.caption("Premier League Decision Platform · HETIC MD4")
+st.caption("Premier League Dashboard · Bachelor Data et IA · Ayoub AZACRI, Youssef EL HAJJI, Omar HAKIK, Youssef DEKHAIL")
