@@ -31,6 +31,8 @@ def create_shot_funnel_chart(
         f"{val_goals:,}".replace(",", " ") + f" buts ({pct_goals_sot:.1f} % convertis)"
     ]
 
+    values = [val_shots, val_sot, val_goals]
+
     fig = go.Figure(go.Funnel(
         y=stages,
         x=values,
