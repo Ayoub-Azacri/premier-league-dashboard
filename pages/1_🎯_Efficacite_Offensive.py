@@ -13,7 +13,11 @@ from engine.pl_data_loader import (
     compute_team_aggregates
 )
 from engine.pl_metrics import compute_quadrant_profiles
-from engine.pl_visuals import get_custom_css, create_quadrant_chart
+from engine.pl_visuals import (
+    get_custom_css,
+    create_quadrant_chart,
+    create_club_radar_chart
+)
 
 st.set_page_config(
     page_title="Efficacité Offensive · Premier League",
@@ -81,7 +85,15 @@ with c2:
     st.markdown("### 🚨 En difficulté (Zone critique)")
     st.write("Déficit cumulé de précision et de finition. Souvent corrélé aux trois dernières places du championnat.")
     releg_teams = quadrant_df[quadrant_df["ProfilTactique"].str.startswith("En difficulté")]["Team"].tolist()
-    st.error(f"Équipes dans cette zone : **{', '.join(releg_teams) if releg_teams else 'Aucune'}**")
+st.divider()
+
+# Profilage Radar 360°
+st.subheader("Radar Tactique 360° : Évaluation Scout & Profilage d'Équipe")
+st.caption("Benchmark multidimensionnel comparant les clubs sélectionnés aux standards moyens de la Premier League (Précision, Conversion, Points/Tir cadré, Volume, Rendement).")
+
+target_radar = teams if len(teams) > 0 else team_stats.head(2)["Team"].tolist()
+fig_radar = create_club_radar_chart(team_stats, selected_teams=target_radar, theme=theme)
+st.plotly_chart(fig_radar, use_container_width=True)
 
 st.divider()
 st.caption("Premier League Decision Platform · HETIC MD4")

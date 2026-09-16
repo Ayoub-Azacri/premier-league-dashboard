@@ -11,8 +11,14 @@ from engine.pl_data_loader import (
     get_available_teams,
     compute_team_aggregates
 )
-from engine.pl_metrics import simulate_match_outcome
-from engine.pl_visuals import get_custom_css
+from engine.pl_metrics import (
+    simulate_match_outcome,
+    compute_poisson_score_distribution
+)
+from engine.pl_visuals import (
+    get_custom_css,
+    create_xg_comparison_bar
+)
 
 st.set_page_config(
     page_title="Simulateur Tactique · Premier League",
@@ -88,6 +94,20 @@ fig_prob.update_layout(
     margin=dict(l=0, r=0, t=30, b=10)
 )
 st.plotly_chart(fig_prob, use_container_width=True)
+
+# Modélisation xG et Scores exacts Poisson
+col_xg, col_scores = st.columns([1.1, 0.9])
+
+with col_xg:
+    fig_xg = create_xg_comparison_bar(home_team, away_team, sim['exp_home_goals'], sim['exp_away_goals'], theme=theme)
+    st.plotly_chart(fig_xg, use_container_width=True)
+
+with col_scores:
+    st.markdown("**Scores exacts les plus probables (Modèle Poisson) :**")
+    top_scores = compute_poisson_score_distribution(sim['exp_home_goals'], sim['exp_away_goals'], top_n=3)
+    sc1, sc2, sc3 = st.columns(3)
+    for col_s, s_info in zip([sc1, sc2, sc3], top_scores):
+        col_s.metric(f"Score {s_info['score']}", f"{s_info['prob']:.1f} %")
 
 # Verdict et Clés tactiques
 c_v1, c_v2 = st.columns([1.2, 0.8])

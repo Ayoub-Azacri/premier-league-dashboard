@@ -36,33 +36,33 @@ Le taux de cadrage net, qui mesure la qualite du choix de tir ;
 Le taux de conversion clinique, qui isole le sang-froid face au but ;
 Et les points engranges par tir cadre, qui mesurent la rentabilite comptable directe."
 
-## 3. Omar HAKIK : Demonstration du quadrant d'efficacite (02:30 - 03:45)
+## 3. Omar HAKIK : Matrice d'efficacite et radar tactique 360° (02:30 - 03:45)
 
-"Sur notre premier volet detaille, nous croisons ces deux dimensions dans une matrice tactique en quatre quadrants.
+"Dès la page d'accueil, notre entonnoir de conversion offensive montre que 65 % des tirs sont perdus hors cadre avant même d'inquiéter le gardien.
 
-Ce graphique repond au principe des canaux pre-attentifs : les seuils medians separent instantanement l'elite des equipes en difficulte.
+Sur notre premier volet détaillé, nous croisons ces dimensions dans une matrice tactique en quatre quadrants où chaque bulle est indexée sur les points réels engrangés au classement.
 
-En haut a droite, la zone chirurgicale regroupe Manchester City, Arsenal et Liverpool, qui allient plus de 35 % de cadrage et 33 % de conversion.
-A l'oppose, nous identifions le profil des equipes volumineuses : beaucoup de frappes tentees, mais une finition sterile qui les maintient en milieu de tableau.
+Ce graphique répond au principe des canaux pré-attentifs : les seuils médians séparent instantanément l'élite des équipes en difficulté. En haut à droite, la zone chirurgicale regroupe Manchester City, Arsenal et Liverpool, qui allient plus de 35 % de cadrage et 33 % de conversion.
 
-Pour la cellule de recrutement, ce quadrant est un outil de decision direct pour cibler des attaquants rentables plutot que de simples accumulateurs de tirs."
+Pour la cellule de recrutement, nous avons ajouté un radar tactique à 360° inspiré des standards Opta. Il compare en un clin d'œil n'importe quel club aux moyennes de la Premier League sur la précision, la conversion, le volume et la rentabilité par tir cadré."
 
 ## 4. Youssef DEKHAIL : Le 12e Homme et simulateur tactique (03:45 - 05:00)
 
-"Notre second volet explore l'experience naturelle du huis clos lors de la saison COVID 2020-21.
-Les donnees prouvent la realite statistique du 12e Homme : sans supporters, le taux de victoires a domicile s'est effondre de 8,3 points, passant sous la barre des victoires a l'exterieur pour la premiere fois de l'histoire moderne.
+"Notre second volet explore l'expérience naturelle du huis clos lors de la saison COVID 2020-21.
 
-Enfin, notre simulateur tactique permet au coach d'anticiper une confrontation donnee en pondérant les forces d'attaque, la resistance defensive et l'effet terrain.
+Notre courbe temporelle sur 5 saisons démontre l'effondrement historique de l'avantage à domicile : le taux de victoires à domicile est tombé à 37,9 %, passant sous la barre des victoires à l'extérieur (40,3 %) pour la seule fois de l'histoire moderne.
 
-En conclusion, ce dashboard transforme 5 ans de donnees brutes en un levier d'action concret pour les decideurs du football professionnel. Nous sommes a votre disposition pour vos questions."
+Notre graphique Cleveland Dumbbell isole la sensibilité de chaque club : sans le Kop d'Anfield, le taux de victoire de Liverpool à domicile s'est effondré de 24 points. Newcastle et Arsenal ont perdu plus de 20 points, alors que Manchester City est resté quasiment insensible avec seulement 2,6 points d'écart.
+
+Enfin, notre simulateur tactique combine un modèle d'espérance de buts et une loi de Poisson bivariée pour estimer les probabilités d'issue et les scores exacts les plus probables avec ou sans public."
 
 ## Reponses aux questions probables du jury
 
-* Pourquoi ne pas avoir inclus les Expected Goals (xG) ?
-Reponse : Le dataset officiel football-data.co.uk fournit les tirs et tirs cadres fiables sur 1 900 matchs. Notre ratio Buts / Tir cadre et notre indice de cadrage constituent une modelisation fidele et verifiable sans boite noire proprietaire.
+* Comment avez-vous modélisé l'espérance de buts (xG) et les scores dans le simulateur ?
+Réponse : Nous combinons la force offensive relative de chaque club, la résistance défensive adverse et la prime de terrain observée sur 1 900 matchs, puis appliquons une distribution de Poisson bivariée pour extraire les probabilités de victoires et les trois scores exacts les plus fréquents.
 
-* Comment garantissez-vous l'honnetete des graphiques ?
-Reponse : Echelles commencant a zero pour les histogrammes, axes des quadrants normalises sur les medians de la ligue, et aucune troncation artificielle qui viendrait biaiser la perception visuelle.
+* Comment garantissez-vous l'honnêteté des graphiques ?
+Réponse : Échelles commençant à zéro pour les histogrammes, axes des quadrants normalisés sur les médianes réelles de la ligue, et aucune troncature artificielle qui viendrait biaiser la perception visuelle.
 
 * Quelle est la plus-value de l'architecture multi-pages ?
 Reponse : Elle respecte la pyramide de Minto et reduit la charge cognitive : l'utilisateur dispose d'une vue de synthese en 3 KPIs, puis plonge volontairement dans les ecrans specialises sans defilement vertical infini.

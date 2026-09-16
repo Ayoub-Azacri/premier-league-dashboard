@@ -15,7 +15,8 @@ from engine.pl_data_loader import (
 from engine.pl_metrics import compute_executive_kpis
 from engine.pl_visuals import (
     get_custom_css,
-    create_efficiency_ranking_chart
+    create_efficiency_ranking_chart,
+    create_shot_funnel_chart
 )
 
 # 1. Configuration de la page
@@ -102,12 +103,24 @@ c3.metric(
     f"{kpi_data['matches']} matchs analysés"
 )
 
-# 7. Synthèse Minto
-st.markdown("""
-<div class="minto-card">
-    <strong>Synthèse de cadrage (Minto) :</strong> Accumuler des frappes non cadrées réduit la rentabilité globale d'une équipe. Les prétendants au titre se distinguent par une précision de cadrage supérieure à 36 % et un taux de conversion supérieur à 33 %, convertissant chaque tir cadré en 0,31 but contre 0,08 pour les équipes reléguées.
-</div>
-""", unsafe_allow_html=True)
+# 7. Synthèse Minto & Entonnoir d'Efficacité
+col_minto, col_funnel = st.columns([1.2, 0.8])
+
+with col_minto:
+    st.markdown("""
+    <div class="minto-card">
+        <strong>Synthèse de cadrage (Minto) :</strong> Accumuler des frappes non cadrées réduit la rentabilité globale d'une équipe. Les prétendants au titre se distinguent par une précision de cadrage supérieure à 36 % et un taux de conversion supérieur à 33 %, convertissant chaque tir cadré en 0,31 but contre 0,08 pour les équipes reléguées.
+    </div>
+    """, unsafe_allow_html=True)
+    st.info("💡 **Observation clé :** Près de deux tiers des frappes (65 %) sont gaspillées hors cadre. La priorité d'entraînement doit porter sur la sélection des tirs plutôt que sur le volume brut.")
+
+with col_funnel:
+    tot_shots = df_filtered["TotalShots"].sum()
+    tot_sot = df_filtered["TotalShotsTarget"].sum()
+    tot_goals = df_filtered["TotalGoals"].sum()
+    funnel_label = selected_teams[0] if len(selected_teams) == 1 else "Échantillon analysé"
+    fig_funnel = create_shot_funnel_chart(tot_shots, tot_sot, tot_goals, team_name=funnel_label, theme=theme)
+    st.plotly_chart(fig_funnel, use_container_width=True)
 
 # 8. Zone Détail : Classement et Benchmark des clubs
 team_stats = compute_team_aggregates(df_filtered, target_teams=selected_teams)
@@ -115,17 +128,39 @@ team_stats = compute_team_aggregates(df_filtered, target_teams=selected_teams)
 st.subheader("Classement comparatif de l'efficacité offensive")
 st.caption("Mesure de la capacité des clubs à convertir leurs situations chaudes en buts réels.")
 
+metric_labels = {
+    "Points / Tir Cadré": ("PointsParTirCadre", "Points / Tir Cadré"),
+    "Conversion Buts (%)": ("ConversionButsPct", "Taux de Conversion (%)"),
+    "Précision Cadrage (%)": ("PrecisionCadrePct", "Précision de Cadrage (%)"),
+    "Buts / Match": ("ButsParMatch", "Buts / Match")
+}
+
+selected_metric_name = st.radio(
+    "Métrique d'étalonnage :",
+    options=list(metric_labels.keys()),
+    horizontal=True
+)
+metric_col, metric_display = metric_labels[selected_metric_name]
+
+# Sort by chosen metric for display
+team_stats_sorted = team_stats.sort_values(by=metric_col, ascending=False).reset_index(drop=True)
+
 col_chart, col_table = st.columns([1.2, 0.8])
 
 with col_chart:
-    fig_rank = create_efficiency_ranking_chart(team_stats, theme=theme)
+    fig_rank = create_efficiency_ranking_chart(
+        team_stats_sorted,
+        metric=metric_col,
+        metric_label=metric_display,
+        theme=theme
+    )
     st.plotly_chart(fig_rank, use_container_width=True)
 
 with col_table:
     st.markdown("**Top clubs de l'échantillon sélectionné**")
     display_cols = ["Rang", "Team", "Points", "PrecisionCadrePct", "ConversionButsPct", "PointsParTirCadre"]
     st.dataframe(
-        team_stats[display_cols].rename(columns={
+        team_stats_sorted[display_cols].rename(columns={
             "Team": "Club",
             "PrecisionCadrePct": "Précision (%)",
             "ConversionButsPct": "Conversion (%)",

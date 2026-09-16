@@ -6,8 +6,17 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from engine.pl_data_loader import load_pl_data
-from engine.pl_metrics import compute_home_advantage_comparison
-from engine.pl_visuals import get_custom_css, create_home_advantage_comparison_chart
+from engine.pl_metrics import (
+    compute_home_advantage_comparison,
+    compute_season_outcomes,
+    compute_club_crowd_sensitivity
+)
+from engine.pl_visuals import (
+    get_custom_css,
+    create_home_advantage_comparison_chart,
+    create_seasons_timeline_chart,
+    create_club_home_impact_dumbbell
+)
 
 st.set_page_config(
     page_title="Le 12e Homme · Premier League",
@@ -49,9 +58,22 @@ k3.metric(
     f"+{comp_stats['away_boost_pts']:.1f} pts vs normal"
 )
 
-# Graphique comparatif
-fig_home = create_home_advantage_comparison_chart(comp_stats, theme=theme)
-st.plotly_chart(fig_home, use_container_width=True)
+# 1. Évolution temporelle sur 5 saisons
+seasons_df = compute_season_outcomes(df_raw)
+fig_timeline = create_seasons_timeline_chart(seasons_df, theme=theme)
+st.plotly_chart(fig_timeline, use_container_width=True)
+
+# 2. Zone d'impact par club et synthèse
+col_db, col_stack = st.columns([1.25, 0.75])
+
+with col_db:
+    sens_df = compute_club_crowd_sensitivity(df_raw)
+    fig_db = create_club_home_impact_dumbbell(sens_df, theme=theme)
+    st.plotly_chart(fig_db, use_container_width=True)
+
+with col_stack:
+    fig_home = create_home_advantage_comparison_chart(comp_stats, theme=theme)
+    st.plotly_chart(fig_home, use_container_width=True)
 
 st.subheader("Ce que révèle l'expérience naturelle du huis clos")
 

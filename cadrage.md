@@ -28,10 +28,10 @@ Pour eviter la surcharge cognitive et respecter la regle de 2 a 3 indicateurs ma
 
 L'application adopte une architecture multi-pages pour hierarchiser l'information en 3 niveaux :
 
-* Vue de synthese executive (`app.py`) : bandeau de cadrage, zone des 3 KPIs cles contextualises avec comparaison a la moyenne de la ligue, et classement interactif de l'efficacite globale des 20 clubs.
-* Volet Efficacite Offensive (`pages/1_Efficacite_Offensive.py`) : quadrant strategique croisant precision (cadrage) et conversion (buts/tirs cadres). Ce quadrant classe les clubs en 4 profils : Chirurgicaux, Dominateurs, Steriles et En difficulte.
-* Volet Le 12eme Homme (`pages/2_Le_12eme_Homme.py`) : analyse de l'avantage a domicile et demonstration de son effondrement historique lors de la saison COVID a huis clos (chute de 46 % a 37,9 % de victoires a domicile).
-* Volet Simulateur Tactique (`pages/3_Simulateur_Tactique.py`) : outil prospectif permettant au coach de simuler l'issue d'une confrontation entre deux equipes selon leurs profils d'efficacite et le lieu du match.
+* Vue de synthese executive (`app.py`) : bandeau de cadrage, zone des 3 KPIs cles contextualises avec comparaison a la moyenne de la ligue, entonnoir d'efficacite des tirs (Shooting Funnel montrant 65 % de perte hors cadre), et benchmark interactif multi-metriques avec seuil moyen de reference.
+* Volet Efficacite Offensive (`pages/1_Efficacite_Offensive.py`) : quadrant strategique a 4 zones colorees croisant precision et conversion avec taille de bulle indexee sur les points reels, complete par un radar tactique 360° pour le profilage scout individuel et comparatif.
+* Volet Le 12eme Homme (`pages/2_Le_12eme_Homme.py`) : courbe temporelle sur 5 saisons de l'avantage a domicile mettant en evidence le choc COVID de 2020-21, completee par un graphique Cleveland Dumbbell mesurant la sensibilite des clubs a l'absence de leurs supporters (effondrement de Liverpool, Newcastle et Arsenal).
+* Volet Simulateur Tactique (`pages/3_Simulateur_Tactique.py`) : outil prospectif combinant rapport de force attaque-defense, jauge comparative d'esperance de buts (modele xG) et distribution de Poisson pour prédire les scores exacts les plus probables avec toggle d'impact du public.
 
 ## 5. Filtres interactifs globaux (Sidebar)
 

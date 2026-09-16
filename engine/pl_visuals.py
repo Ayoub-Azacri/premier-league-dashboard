@@ -1,135 +1,143 @@
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
+import numpy as np
 
-def get_custom_css(theme: str = "light") -> str:
-    """Returns custom CSS for an executive sports analytics dashboard."""
-    is_dark = (theme == "dark")
-    bg_card = "#1E293B" if is_dark else "#FFFFFF"
-    text_color = "#F8FAFC" if is_dark else "#0F172A"
-    sub_color = "#94A3B8" if is_dark else "#64748B"
-    border_color = "#334155" if is_dark else "#E2E8F0"
-    minto_bg = "#172554" if is_dark else "#EFF6FF"
-    minto_border = "#1E3A8A" if is_dark else "#BFDBFE"
-    minto_text = "#93C5FD" if is_dark else "#1E3A8A"
+from engine.pl_styles import get_custom_css
 
-    return f"""
-    <style>
-    .hero-banner {{
-        background: {bg_card};
-        border: 1px solid {border_color};
-        border-radius: 12px;
-        padding: 24px 28px;
-        margin-bottom: 24px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }}
-    .hero-badge {{
-        display: inline-block;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #2563EB;
-        background: {minto_bg};
-        border: 1px solid {minto_border};
-        border-radius: 9999px;
-        padding: 4px 12px;
-        margin-bottom: 8px;
-    }}
-    .hero-title {{
-        font-size: 1.75rem;
-        font-weight: 800;
-        color: {text_color};
-        margin: 6px 0 8px 0;
-        line-height: 1.25;
-    }}
-    .hero-subtitle {{
-        font-size: 0.95rem;
-        color: {sub_color};
-        margin-bottom: 12px;
-        line-height: 1.5;
-    }}
-    .minto-card {{
-        background: {minto_bg};
-        border-left: 4px solid #2563EB;
-        border-top: 1px solid {minto_border};
-        border-right: 1px solid {minto_border};
-        border-bottom: 1px solid {minto_border};
-        border-radius: 8px;
-        padding: 14px 18px;
-        margin-bottom: 20px;
-        font-size: 0.92rem;
-        color: {text_color};
-        line-height: 1.45;
-    }}
-    .minto-highlight {{
-        font-weight: 700;
-        color: {minto_text};
-    }}
-    div[data-testid="stMetricValue"] {{
-        font-size: 1.85rem !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.02em !important;
-    }}
-    div[data-testid="stMetricDelta"] {{
-        font-size: 0.82rem !important;
-        font-weight: 600 !important;
-    }}
-    </style>
-    """
-
-def create_efficiency_ranking_chart(team_df: pd.DataFrame, theme: str = "light") -> go.Figure:
-    """Plots a clean horizontal bar chart ranking teams by conversion and accuracy."""
+def create_shot_funnel_chart(
+    total_shots: float,
+    shots_target: float,
+    goals: int,
+    team_name: str = "Premier League",
+    theme: str = "light"
+) -> go.Figure:
+    """Plots a 3-stage shooting conversion funnel highlighting wasted shots."""
     is_dark = (theme == "dark")
     text_color = "#E2E8F0" if is_dark else "#1E293B"
     bg_color = "rgba(0,0,0,0)"
 
-    top_teams = team_df.head(15).iloc[::-1]  # Reverse for bottom-to-top order in horizontal bar
+    stages = ["Tirs Totaux", "Tirs Cadrés", "Buts Marqués"]
+    values = [int(total_shots), int(shots_target), int(goals)]
 
-    fig = go.Figure()
-
-    fig.add_trace(go.Bar(
-        x=top_teams["ConversionButsPct"],
-        y=top_teams["Team"],
-        orientation='h',
+    fig = go.Figure(go.Funnel(
+        y=stages,
+        x=values,
+        textinfo="value+percent initial+percent previous",
+        textposition="inside",
+        textfont=dict(size=12, color="#FFFFFF"),
         marker=dict(
-            color=top_teams["ConversionButsPct"],
-            colorscale='Blues',
-            line=dict(color='#1E3A8A', width=1)
+            color=["#2563EB", "#0D9488", "#16A34A"],
+            line=dict(color="#0F172A", width=1)
         ),
-        text=[f"{val:.1f} %" for val in top_teams["ConversionButsPct"]],
-        textposition='outside',
-        hovertemplate="<b>%{y}</b><br>Conversion : %{x:.1f} %<br>Précision cadrée : %{customdata[0]:.1f} %<extra></extra>",
-        customdata=top_teams[["PrecisionCadrePct"]].values
+        connector=dict(line=dict(color="#94A3B8", width=1, dash="dot"))
     ))
 
     fig.update_layout(
         title=dict(
-            text="<b>Classement d'efficacité clinique : Taux de conversion (Buts / Tir cadré)</b>",
+            text=f"<b>Entonnoir de conversion offensive ({team_name})</b>",
+            font=dict(size=13, color=text_color)
+        ),
+        paper_bgcolor=bg_color,
+        plot_bgcolor=bg_color,
+        height=260,
+        margin=dict(l=10, r=10, t=40, b=10)
+    )
+    return fig
+
+def create_efficiency_ranking_chart(
+    team_df: pd.DataFrame,
+    metric: str = "PointsParTirCadre",
+    metric_label: str = "Points / Tir Cadré",
+    avg_val: float = None,
+    theme: str = "light"
+) -> go.Figure:
+    """Plots a horizontal bar chart ranking clubs by an actionable KPI with league average benchmark."""
+    is_dark = (theme == "dark")
+    text_color = "#E2E8F0" if is_dark else "#1E293B"
+    bg_color = "rgba(0,0,0,0)"
+
+    top_teams = team_df.head(20).iloc[::-1].copy()
+    if avg_val is None and not team_df.empty and metric in team_df.columns:
+        avg_val = team_df[metric].mean()
+
+    # Pre-attentive color coding: Highlight teams performing above the league average
+    bar_colors = []
+    for val in top_teams[metric]:
+        if avg_val is not None and val >= avg_val:
+            bar_colors.append("#2563EB")
+        else:
+            bar_colors.append("#94A3B8" if not is_dark else "#475569")
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Bar(
+        x=top_teams[metric],
+        y=top_teams["Team"],
+        orientation='h',
+        marker=dict(color=bar_colors, line=dict(color='#1E3A8A', width=0.8)),
+        text=[f"{val:.2f}" if "Points" in metric else f"{val:.1f} %" for val in top_teams[metric]],
+        textposition='outside',
+        hovertemplate="<b>%{y}</b><br>" + metric_label + " : %{x:.2f}<br>Rang : %{customdata[0]}<extra></extra>",
+        customdata=top_teams[["Rang"]].values
+    ))
+
+    if avg_val is not None:
+        fig.add_vline(
+            x=avg_val,
+            line_dash="dash",
+            line_color="#EF4444",
+            line_width=1.5,
+            annotation_text=f"Moyenne : {avg_val:.2f}" if "Points" in metric else f"Moyenne : {avg_val:.1f} %",
+            annotation_position="top right",
+            annotation_font=dict(color="#EF4444", size=10)
+        )
+
+    max_x = top_teams[metric].max() if not top_teams.empty else 10
+    fig.update_layout(
+        title=dict(
+            text=f"<b>Classement comparatif : {metric_label}</b>",
             font=dict(size=14, color=text_color)
         ),
         xaxis=dict(
-            title="Taux de conversion (%)",
-            range=[0, max(top_teams["ConversionButsPct"].max() + 8, 45)],
+            title=metric_label,
+            range=[0, max_x * 1.18 if max_x > 0 else 10],
             color=text_color,
             gridcolor="#334155" if is_dark else "#F1F5F9"
         ),
         yaxis=dict(color=text_color),
         paper_bgcolor=bg_color,
         plot_bgcolor=bg_color,
-        margin=dict(l=10, r=20, t=40, b=30),
-        height=max(180, min(520, len(top_teams) * 32 + 80))
+        margin=dict(l=10, r=30, t=40, b=30),
+        height=max(220, min(560, len(top_teams) * 26 + 70))
     )
     return fig
 
 def create_quadrant_chart(team_df: pd.DataFrame, theme: str = "light") -> go.Figure:
-    """Plots the 4-quadrant strategic map: Accuracy (Precision) vs Conversion."""
+    """Plots the 4-quadrant strategic map: Precision vs Conversion with colored zones."""
     is_dark = (theme == "dark")
     text_color = "#E2E8F0" if is_dark else "#1E293B"
     bg_color = "rgba(0,0,0,0)"
 
-    med_x = team_df["PrecisionCadrePct"].median()
-    med_y = team_df["ConversionButsPct"].median()
+    med_x = team_df["PrecisionCadrePct"].median() if not team_df.empty else 34.0
+    med_y = team_df["ConversionButsPct"].median() if not team_df.empty else 31.0
+
+    x_min = max(20.0, team_df["PrecisionCadrePct"].min() - 2) if not team_df.empty else 20.0
+    x_max = team_df["PrecisionCadrePct"].max() + 3 if not team_df.empty else 45.0
+    y_min = max(15.0, team_df["ConversionButsPct"].min() - 3) if not team_df.empty else 15.0
+    y_max = team_df["ConversionButsPct"].max() + 4 if not team_df.empty else 45.0
+
+    fig = go.Figure()
+
+    # Add shaded background zones for each quadrant
+    fig.add_shape(type="rect", x0=med_x, y0=med_y, x1=x_max, y1=y_max,
+                  fillcolor="rgba(22, 163, 74, 0.08)", line_width=0, layer="below")
+    fig.add_shape(type="rect", x0=med_x, y0=y_min, x1=x_max, y1=med_y,
+                  fillcolor="rgba(37, 99, 235, 0.08)", line_width=0, layer="below")
+    fig.add_shape(type="rect", x0=x_min, y0=med_y, x1=med_x, y1=y_max,
+                  fillcolor="rgba(217, 119, 6, 0.08)", line_width=0, layer="below")
+    fig.add_shape(type="rect", x0=x_min, y0=y_min, x1=med_x, y1=med_y,
+                  fillcolor="rgba(220, 38, 38, 0.08)", line_width=0, layer="below")
 
     color_palette = {
         "Chirurgicaux (Haute précision & conversion)": "#16A34A",
@@ -137,8 +145,6 @@ def create_quadrant_chart(team_df: pd.DataFrame, theme: str = "light") -> go.Fig
         "Réalistes (Opportunisme clinique en contre)": "#D97706",
         "En difficulté (Manque de précision et de réalisme)": "#DC2626"
     }
-
-    fig = go.Figure()
 
     for prof, grp in team_df.groupby("ProfilTactique"):
         fig.add_trace(go.Scatter(
@@ -150,13 +156,13 @@ def create_quadrant_chart(team_df: pd.DataFrame, theme: str = "light") -> go.Fig
             textposition="top center",
             textfont=dict(size=10, color=text_color),
             marker=dict(
-                size=grp["PointsParTirCadre"] * 28 + 8,
+                size=np.clip(grp["Points"] / 3.4, 9, 30),
                 color=color_palette.get(prof, "#64748B"),
-                line=dict(color="#0F172A", width=1),
-                opacity=0.85
+                line=dict(color="#0F172A", width=1.2),
+                opacity=0.88
             ),
-            hovertemplate="<b>%{text}</b><br>Précision : %{x:.1f} %<br>Conversion : %{y:.1f} %<br>Points/Tir cadré : %{customdata:.2f}<extra></extra>",
-            customdata=grp["PointsParTirCadre"]
+            hovertemplate="<b>%{text}</b><br>Précision : %{x:.1f} %<br>Conversion : %{y:.1f} %<br>Points totaux : %{customdata[0]}<br>Points/Tir cadré : %{customdata[1]:.2f}<extra></extra>",
+            customdata=grp[["Points", "PointsParTirCadre"]].values
         ))
 
     # Median threshold lines
@@ -164,9 +170,6 @@ def create_quadrant_chart(team_df: pd.DataFrame, theme: str = "light") -> go.Fig
     fig.add_hline(y=med_y, line_dash="dash", line_color="#94A3B8", line_width=1.5)
 
     # Quadrant annotations
-    x_min, x_max = team_df["PrecisionCadrePct"].min() - 2, team_df["PrecisionCadrePct"].max() + 3
-    y_min, y_max = team_df["ConversionButsPct"].min() - 3, team_df["ConversionButsPct"].max() + 4
-
     fig.add_annotation(x=x_max - 1, y=y_max - 1, text="<b>ZONE ÉLITE : Chirurgicaux</b>", showarrow=False, font=dict(color="#16A34A", size=11))
     fig.add_annotation(x=x_min + 1, y=y_max - 1, text="<b>Contre-attaque réaliste</b>", showarrow=False, font=dict(color="#D97706", size=11))
     fig.add_annotation(x=x_max - 1, y=y_min + 1, text="<b>Volume stérile</b>", showarrow=False, font=dict(color="#2563EB", size=11))
@@ -174,7 +177,7 @@ def create_quadrant_chart(team_df: pd.DataFrame, theme: str = "light") -> go.Fig
 
     fig.update_layout(
         title=dict(
-            text="<b>Matrice Tactique : Précision au tir vs Conversion clinique</b>",
+            text="<b>Matrice Tactique : Précision au cadrage vs Conversion clinique (Taille = Points)</b>",
             font=dict(size=15, color=text_color)
         ),
         xaxis=dict(
@@ -197,56 +200,143 @@ def create_quadrant_chart(team_df: pd.DataFrame, theme: str = "light") -> go.Fig
     )
     return fig
 
-def create_home_advantage_comparison_chart(comp_stats: dict, theme: str = "light") -> go.Figure:
-    """Plots comparative stacked or grouped bars showing the drop in home wins during COVID."""
+def create_club_radar_chart(
+    team_stats: pd.DataFrame,
+    selected_teams: list = None,
+    theme: str = "light"
+) -> go.Figure:
+    """Plots a 360-degree tactical radar profiling selected clubs against the Premier League benchmark."""
     is_dark = (theme == "dark")
     text_color = "#E2E8F0" if is_dark else "#1E293B"
     bg_color = "rgba(0,0,0,0)"
 
-    categories = ["Saisons avec public (Normales)", "Saison 2020-21 (Huis clos COVID)"]
-    home_wins = [comp_stats["normal"]["home_win"], comp_stats["covid"]["home_win"]]
-    draws = [comp_stats["normal"]["draw"], comp_stats["covid"]["draw"]]
-    away_wins = [comp_stats["normal"]["away_win"], comp_stats["covid"]["away_win"]]
+    categories = [
+        "Précision Cadrage (%)",
+        "Conversion Buts (%)",
+        "Points / Tir Cadré (x100)",
+        "Tirs Cadrés / Match (x10)",
+        "Points / Match (x25)"
+    ]
+
+    # Benchmark league average
+    league_acc = team_stats["PrecisionCadrePct"].mean()
+    league_conv = team_stats["ConversionButsPct"].mean()
+    league_pts_sot = team_stats["PointsParTirCadre"].mean() * 100
+    league_sot_match = team_stats["TirsCadresParMatch"].mean() * 10
+    league_pts_match = (team_stats["Points"] / team_stats["Matchs"]).mean() * 25
+
+    league_vals = [league_acc, league_conv, league_pts_sot, league_sot_match, league_pts_match]
+    league_vals.append(league_vals[0])  # Close the radar loop
+
+    cats_closed = categories + [categories[0]]
+    fig = go.Figure()
+
+    # League benchmark
+    fig.add_trace(go.Scatterpolar(
+        r=league_vals,
+        theta=cats_closed,
+        name="Moyenne Premier League",
+        line=dict(color="#94A3B8", dash="dash", width=1.5),
+        fill='none'
+    ))
+
+    # Determine teams to plot
+    teams_to_plot = selected_teams if (selected_teams and len(selected_teams) > 0) else team_stats.head(2)["Team"].tolist()
+    teams_to_plot = teams_to_plot[:2]  # Limit to 2 for visual clarity
+
+    colors = ["#2563EB", "#EA580C"]
+    for idx, team in enumerate(teams_to_plot):
+        row = team_stats[team_stats["Team"] == team]
+        if row.empty:
+            continue
+        r = row.iloc[0]
+        vals = [
+            r["PrecisionCadrePct"],
+            r["ConversionButsPct"],
+            r["PointsParTirCadre"] * 100,
+            r["TirsCadresParMatch"] * 10,
+            (r["Points"] / r["Matchs"]) * 25
+        ]
+        vals.append(vals[0])
+
+        fig.add_trace(go.Scatterpolar(
+            r=vals,
+            theta=cats_closed,
+            name=team,
+            line=dict(color=colors[idx % len(colors)], width=2.5),
+            fill='toself',
+            opacity=0.35
+        ))
+
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(visible=True, range=[0, 55], color=text_color, gridcolor="#334155" if is_dark else "#E2E8F0"),
+            angularaxis=dict(color=text_color, gridcolor="#334155" if is_dark else "#E2E8F0")
+        ),
+        title=dict(
+            text="<b>Profil Tactique 360° : Évaluation Scout & Recrutement vs Moyenne Ligue</b>",
+            font=dict(size=14, color=text_color)
+        ),
+        showlegend=True,
+        paper_bgcolor=bg_color,
+        plot_bgcolor=bg_color,
+        height=380,
+        margin=dict(l=30, r=30, t=50, b=30)
+    )
+    return fig
+
+from engine.pl_visuals_crowd import (
+    create_home_advantage_comparison_chart,
+    create_seasons_timeline_chart,
+    create_club_home_impact_dumbbell
+)
+
+def create_xg_comparison_bar(
+    home_team: str,
+    away_team: str,
+    exp_home: float,
+    exp_away: float,
+    theme: str = "light"
+) -> go.Figure:
+    """Plots a clean comparative bar of expected goals (xG)."""
+    is_dark = (theme == "dark")
+    text_color = "#E2E8F0" if is_dark else "#1E293B"
+    bg_color = "rgba(0,0,0,0)"
 
     fig = go.Figure()
 
     fig.add_trace(go.Bar(
-        name="Victoires Domicile",
-        x=categories,
-        y=home_wins,
+        x=[exp_home],
+        y=[f"{home_team} (Dom)"],
+        orientation='h',
         marker_color="#2563EB",
-        text=[f"{v:.1f} %" for v in home_wins],
-        textposition="inside"
+        text=[f"{exp_home:.2f} buts"],
+        textposition="inside",
+        name=home_team
     ))
+
     fig.add_trace(go.Bar(
-        name="Matchs Nuls",
-        x=categories,
-        y=draws,
-        marker_color="#94A3B8",
-        text=[f"{v:.1f} %" for v in draws],
-        textposition="inside"
-    ))
-    fig.add_trace(go.Bar(
-        name="Victoires Extérieur",
-        x=categories,
-        y=away_wins,
+        x=[exp_away],
+        y=[f"{away_team} (Ext)"],
+        orientation='h',
         marker_color="#EA580C",
-        text=[f"{v:.1f} %" for v in away_wins],
-        textposition="inside"
+        text=[f"{exp_away:.2f} buts"],
+        textposition="inside",
+        name=away_team
     ))
 
     fig.update_layout(
-        barmode='stack',
         title=dict(
-            text="<b>Répartition des issues de match : Effondrement du 12e Homme pendant le huis clos</b>",
-            font=dict(size=14, color=text_color)
+            text="<b>Espérance de buts attendus (xG Model)</b>",
+            font=dict(size=13, color=text_color)
         ),
-        xaxis=dict(color=text_color),
-        yaxis=dict(title="Proportion des matchs (%)", range=[0, 100], color=text_color),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color=text_color)),
+        xaxis=dict(title="Buts attendus", range=[0, max(exp_home, exp_away) * 1.3], color=text_color),
+        yaxis=dict(color=text_color),
+        showlegend=False,
         paper_bgcolor=bg_color,
         plot_bgcolor=bg_color,
-        height=380,
-        margin=dict(l=20, r=20, t=50, b=30)
+        height=160,
+        margin=dict(l=10, r=10, t=35, b=25)
     )
     return fig
+

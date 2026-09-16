@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 
 def compute_executive_kpis(df: pd.DataFrame) -> dict:
     """Computes executive-level actionable KPIs contextualized against league baselines."""
@@ -157,3 +158,77 @@ def simulate_match_outcome(
         "verdict": verdict,
         "keys": keys
     }
+
+def compute_season_outcomes(df: pd.DataFrame) -> pd.DataFrame:
+    """Calculates home win, draw, and away win rates across each season."""
+    if df.empty or "Saison" not in df.columns:
+        return pd.DataFrame()
+
+    records = []
+    for s, g in df.groupby("Saison"):
+        n = len(g)
+        if n == 0:
+            continue
+        h_pct = round((g["FTR"] == "H").sum() / n * 100, 1)
+        d_pct = round((g["FTR"] == "D").sum() / n * 100, 1)
+        a_pct = round((g["FTR"] == "A").sum() / n * 100, 1)
+        records.append({
+            "Saison": s,
+            "Matchs": n,
+            "VictoireDomicilePct": h_pct,
+            "NulPct": d_pct,
+            "VictoireExterieurPct": a_pct,
+            "IsCovid": bool((g["is_closed_door"]).mean() > 0.5) if "is_closed_door" in g.columns else False
+        })
+    out = pd.DataFrame(records).sort_values("Saison").reset_index(drop=True)
+    return out
+
+def compute_club_crowd_sensitivity(df: pd.DataFrame, min_matches: int = 10) -> pd.DataFrame:
+    """Calculates each club's home win percentage with crowds vs closed doors."""
+    if df.empty or "is_closed_door" not in df.columns:
+        return pd.DataFrame()
+
+    covid = df[df["is_closed_door"] == 1]
+    normal = df[df["is_closed_door"] == 0]
+
+    all_teams = df["HomeTeam"].unique()
+    records = []
+
+    for t in all_teams:
+        c_m = covid[covid["HomeTeam"] == t]
+        n_m = normal[normal["HomeTeam"] == t]
+        if len(c_m) >= min_matches and len(n_m) >= min_matches:
+            c_win = round((c_m["FTR"] == "H").sum() / len(c_m) * 100, 1)
+            n_win = round((n_m["FTR"] == "H").sum() / len(n_m) * 100, 1)
+            diff = round(c_win - n_win, 1)
+            records.append({
+                "Team": t,
+                "NormalWinPct": n_win,
+                "CovidWinPct": c_win,
+                "DiffPct": diff,
+                "MatchsNormal": len(n_m),
+                "MatchsCovid": len(c_m)
+            })
+
+    out = pd.DataFrame(records)
+    if not out.empty:
+        out = out.sort_values("DiffPct").reset_index(drop=True)
+    return out
+
+def compute_poisson_score_distribution(exp_home: float, exp_away: float, top_n: int = 3) -> list:
+    """Computes exact scoreline probabilities using the Poisson distribution."""
+    scores = []
+    for h in range(6):
+        p_h = (np.exp(-exp_home) * (exp_home ** h)) / math.factorial(h)
+        for a in range(6):
+            p_a = (np.exp(-exp_away) * (exp_away ** a)) / math.factorial(a)
+            prob_pct = round(p_h * p_a * 100, 1)
+            scores.append({
+                "score": f"{h} - {a}",
+                "prob": prob_pct,
+                "home_goals": h,
+                "away_goals": a
+            })
+    scores.sort(key=lambda x: x["prob"], reverse=True)
+    return scores[:top_n]
+
